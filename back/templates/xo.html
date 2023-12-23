@@ -1,0 +1,194 @@
+{% extends 'layout.html' %}
+{% block title %}PLAY WITH ME{% endblock %}
+{% block head %}
+    {{super()}}
+    <style>
+        #extra-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    margin: 0;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 5px;
+}
+
+.xo-buttons {
+    width: 100px;
+    height: 100px;
+    font-size: 50px;
+    font-weight: bold;
+    position: relative;
+}
+
+.xo-buttons::before {
+    content: attr(data-grid-number);
+    position: absolute;
+    top: -2px;
+    left: 5px;
+    font-size: 20px;
+    color: rgb(175, 16, 90);
+    font-weight: normal;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<body>
+    <br><br>
+    <div class="col-md-7 col-lg-8 mx-auto text-center">
+        <h1>play xo</h1>
+
+    </div>
+    <br>
+    <div id="extra-container" class="col-md-7 col-lg-8 mx-auto">
+
+
+        <div id="board" onclick="play(event)">
+            <button id="grid0" class="btn btn-primary btn-lg xo-buttons" data-grid-number="0"> </button>
+            <button id="grid1" class="btn btn-primary btn-lg xo-buttons" data-grid-number="1"> </button>
+            <button id="grid2" class="btn btn-primary btn-lg xo-buttons" data-grid-number="2"> </button>
+            <button id="grid3" class="btn btn-primary btn-lg xo-buttons" data-grid-number="3"> </button>
+            <button id="grid4" class="btn btn-primary btn-lg xo-buttons" data-grid-number="4"> </button>
+            <button id="grid5" class="btn btn-primary btn-lg xo-buttons" data-grid-number="5"> </button>
+            <button id="grid6" class="btn btn-primary btn-lg xo-buttons" data-grid-number="6"> </button>
+            <button id="grid7" class="btn btn-primary btn-lg xo-buttons" data-grid-number="7"> </button>
+            <button id="grid8" class="btn btn-primary btn-lg xo-buttons" data-grid-number="8"> </button>
+        </div>
+    </div>
+    <div class="col-md-7 col-lg-8 mx-auto text-center">
+        <br>
+        <button onclick="resetBoard()" class="btn btn-primary btn-lg">Reset Board</button><br><br>
+
+        <div id="msg">
+            <h4>New game</h4>
+            <h2>Turn of player X</h2>
+        </div>
+
+    </div>
+    <br><br><br><br>
+
+    <script>
+        let currentPlayer = 'X';
+        let counter = 0;
+        let board = ['', '', '', '', '', '', '', '', ''];
+        const msg = document.getElementById('msg');
+        let isButtonPressAllowed = true; // Flag to add a delay and prevent multiple button presses that may cause the program to bug out
+
+
+        // Handles the click event when a button is clicked on the game board
+        function play(event, index) {
+            if (!isButtonPressAllowed) {
+                return; // Exit early if button press is not allowed
+            }
+            console.log("Before move - currentPlayer:", currentPlayer);
+
+            // Identify the clicked button
+            const clickedButton = event.target;
+
+            // Check if the cell is empty and the game is not over
+            if (board[index] === '' && !checkWin()) {
+                // Disable button press
+                isButtonPressAllowed = false;
+                // Update the board and UI
+                board[index] = currentPlayer;
+                clickedButton.innerText = currentPlayer;
+
+                // Display the current player's turn
+                msg.innerHTML = `<h2>Turn of player ${currentPlayer === 'X' ? 'O' : 'X'}</h2>`;
+
+                // Check for a win
+                if (checkWin()) {
+                    msg.innerHTML = `<h2>${currentPlayer === 'X' ? 'X' : 'O'} wins!`;
+                }
+
+                // Switch to the next player
+                currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+                counter++;
+
+                // Check for a draw
+                checkDraw();
+
+                // Enable button press after a delay
+                setTimeout(function () {
+                    isButtonPressAllowed = true;
+                }, 300);
+            }
+
+            console.log("After move - currentPlayer:", currentPlayer);
+        }
+
+        // Checks if the game is a draw
+        function checkDraw() {
+            if (counter === 9 && !checkWin()) {
+                msg.innerHTML = "<h2>It's a tie!";
+            }
+        }
+
+
+
+        // Determines if there is a win
+        function checkWin() {
+            const winConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontal
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Vertical
+                [0, 4, 8], [2, 4, 6]              // Diagonal
+            ];
+
+            for (const combo of winConditions) {
+                const [a, b, c] = combo; //after taking the arrays of winConditions, combo is converted to [a, b, c] per array. As in [a, b, c] =  [0, 1, 2] then [a, b, c] = [3, 4, 5] etc
+                console.log(`Checking combination: [A = ${a},B = ${b},C = ${c}]`); // debug - checking combinations (a, b, c) inside the scope of the loop
+                if (board[a] !== '' && board[a] === board[b] && board[a] === board[c]) { // if the board positions a, b, c are not empty and are equal to each other then there is a win
+                    // Change the color of the winning cells
+                    document.getElementById(`grid${a}`).classList.replace('btn-primary', 'btn-danger');
+                    document.getElementById(`grid${b}`).classList.replace('btn-primary', 'btn-danger');
+                    document.getElementById(`grid${c}`).classList.replace('btn-primary', 'btn-danger');
+                    console.log(`Win found: A(${combo[0]}) B(${combo[1]}) and C(${combo[2]}) are not empty and are equal to each other: winner = ${board[a]} on Grid ${combo}`); // debug log
+                    return true; // There is a win
+                }
+            }
+
+            return false; // No win yet
+        }
+
+
+
+        // Resets the game board
+        function resetBoard() {
+            currentPlayer = 'X';
+            board = ['', '', '', '', '', '', '', '', ''];
+            counter = 0;
+            msg.innerHTML = `<h4>Board reset<br> <h2>Turn of player ${currentPlayer}`
+
+            // querySelectorAll is used to select all the buttons on the board
+            let buttons = document.querySelectorAll('#board button');
+            for (let i = 0; i < buttons.length; i++) { // loop through all the buttons in the ID #board div (9)
+                let button = buttons[i];
+                button.innerText = '';  // Resets every button text to ''
+                button.classList.replace('btn-danger', 'btn-primary');  // Resets every button color class back to default
+            }
+
+            console.log("Button colors reset: ", buttons); // debug - button colors reset
+
+            console.log("Board reset - currentPlayer:", currentPlayer); // debug - board reset
+        }
+
+
+        // Adds event listeners to each grid button
+        for (let i = 0; i < 9; i++) {
+            const gridButton = document.getElementById("grid" + i);
+            gridButton.addEventListener("click", function (event) {play(event, i);}); // Adds an event listener to each grid button and whenever someone clicks on one the play function is called
+            console.log("Grid " + i + " was checked."); // debug log - checking that the event listeners were added to the grid buttons
+        }
+
+
+    </script>
+
+
+
+</body>
+{% endblock %}

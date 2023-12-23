@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block title %}Successful Login{% endblock %}
+{% block head %}
+    {{super()}}
+{% endblock %}
+
+{% block content %}
+
+<main class="w-100 m-auto">
+
+
+    <div class="px-4 pt-5 my-5 text-center">
+        <h1 class="display-4 fw-bold text-body-emphasis">Login Successful!</h1><br>
+        <h3 class="display-9 fw-bold text-body-emphasis">Enjoy this special version of Tic Tac Toe!</h3><br>
+
+        <!-- Include xo.html in an iframe -->
+        <iframe src="{{ url_for('hello') }}" frameborder="0" width="100%" height="750"></iframe>
+
+        <div class="overflow-hidden">
+            <div class="container px-5">
+                <img src="https://picsum.photos/700/300" class="img-fluid border rounded-3 shadow-lg mb-4">
+            </div>
+        </div>
+        <div class="overflow-hidden">
+            <div class="container px-5">
+                <img src="https://picsum.photos/700/301" class="img-fluid border rounded-3 shadow-lg mb-4">
+            </div>
+        </div>
+        <div class="overflow-hidden">
+            <div class="container px-5">
+                <img src="https://picsum.photos/700/302" class="img-fluid border rounded-3 shadow-lg mb-4">
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

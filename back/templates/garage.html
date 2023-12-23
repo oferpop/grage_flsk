@@ -1,0 +1,257 @@
+{% extends 'layout.html' %}
+{% block title %}Garage Management{% endblock %}
+{% block head %}
+{{super()}}
+{% endblock %}
+
+{% block content %}
+
+<body class="bg-body-tertiary">
+
+    <div class="container mx-auto">
+
+        <div class="col-md-7 col-lg-8 mx-auto text-center">
+            <br>
+            <h1>stolen Garage Management</h1>
+        </div>
+
+        <div class="col-md-7 col-lg-8 mx-auto">
+            <hr class="my-4">
+
+            <h4 class="mb-3">Add New Car</h4>
+            <form class="needs-validation" novalidate="">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label for="carcolor" class="form-label">Car Color</label>
+                        <input type="text" class="form-control" id="carcolor" placeholder="Color">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="caryear" class="form-label">Car Year</label>
+                        <input type="text" class="form-control" id="caryear" placeholder="Year">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="carbrand" class="form-label">Car Brand</label>
+                        <input type="text" class="form-control" id="carbrand" placeholder="Brand" required="">
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="carmodel" class="form-label">Car Model</label>
+                        <input type="text" class="form-control" id="carmodel" placeholder="Model" required="">
+
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="plate" class="form-label">License Plate</label>
+                        <input type="text" class="form-control" id="plate" placeholder="Plate">
+                    </div>
+
+
+                    <br>
+                    <div class="col-sm-6" style="margin-top: 48px;">
+                        <button type="button" class="btn btn-primary btn-lr" onclick="addGarage()">Add</button>
+                        <button type="button" class="btn btn-primary btn-lr" onclick="resetFields()">Clear
+                            Fields</button>
+                    </div>
+                    <hr class="my-4">
+
+
+
+                    <h4 class="mb-3">Garage Editing</h4>
+                    <div class="col-sm-6">
+                        <label for="remover" class="form-label">Remove by ID:</label>
+                        <input type="text" class="form-control" id="remover" placeholder="ID">
+                        <br>
+                        <button type="button" class="btn btn-danger btn-lr"
+                            onclick="removeGarage()">Remove</button><br><br>
+                        <button type="button" class="btn btn-danger btn-lr" onclick="removeGarageLast()">Remove
+                            Last Entry</button>
+                    </div>
+
+
+                    <div class="col-sm-6">
+                        <label for="finder" class="form-label">Search by ID:</label>
+                        <input type="text" class="form-control" id="finder" placeholder="ID">
+                        <br>
+                        <button type="button" class="btn btn-primary btn-lr" onclick="findGarage()">Search</button><br><br>
+                        <button type="button" class="btn btn-warning btn-lr" onclick="displayGarage()">Display
+                            Garage</button>
+
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div id="msg">
+                        <h3>Welcome. The Garage contents will be displayed here.</h2>
+                    </div>
+                    <br><br>
+                    <hr class="my-4">
+                    <br><br>
+            </form>
+        </div>
+
+    </div>
+
+
+
+    <script>
+        let garage = []
+        let nextId = 1;
+
+
+        // Fetches garage data from the server
+        function fetchGarageData() {
+
+            fetch('/get_garage')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Garage data fetched:', data);
+                    garage = data.data; // Update the local garage array
+                    updateGarage(); // Update the display
+
+                    // Update nextId based on the highest existing ID
+                    console.log('Garage FETCHED:', garage);
+                    let existingIds = garage.map(car => parseInt(car[0].ID, 10));
+                    nextId = Math.max(...existingIds, 0) + 1;
+                })
+                .catch((error) => {
+                    console.error('Error fetching garage data:', error);
+                });
+        }
+
+
+
+        // Saves the garage array to the JSON file
+        function saveGarageToFile() {
+            fetch('/save_garage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(garage),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Save successful:', data);
+                })
+                .catch((error) => {
+                    console.error('Error saving garage:', error);
+                });
+        }
+
+        // Adds a car array to the garage
+        function addGarage() {
+            console.log('next ID:' + nextId);
+            let id = nextId;
+            nextId++;
+            garage.push([{
+                "Color": carcolor.value,
+                "ID": id,
+                "Brand": carbrand.value,
+                "Model": carmodel.value,
+                "Year": caryear.value,
+                "Plate": plate.value
+            }])
+            console.log(garage);
+            updateGarage();
+            saveGarageToFile();
+
+        }
+
+
+        // Removes the last element from the garage array, logs the updated array to the console, and updates the garage display
+        function removeGarageLast() {
+            garage.pop() // removes the last element
+            console.log(garage);
+            updateGarage();
+            saveGarageToFile();
+        }
+
+
+        // Removes a car from the garage based on the specified ID. If the ID is not found, an alert is displayed
+        function removeGarage() {
+            let idToRemove = remover.value;
+            let indexToRemove = garage.findIndex(car => car[0].ID === parseInt(idToRemove, 10)); // Find the index of the car with the specified integer ID
+
+            if (indexToRemove !== -1) { // -1 means not found
+                garage.splice(indexToRemove, 1);
+                updateGarage();
+                saveGarageToFile();
+                msg.innerHTML = `<h3>ID #${idToRemove} has been removed from the garage.`
+            } else {
+                msg.innerHTML = `<h3>Car with specified ID not found`
+            }
+        }
+
+        // Finds a car in the garage based on its ID
+        function findGarage() {
+            let idToFind = finder.value;
+            let indexToFind = garage.findIndex(car => car[0].ID === parseInt(idToFind, 10)); // Find the index of the car with the specified integer ID
+            if (indexToFind !== -1) { // -1 means not found
+                let foundCar = garage[indexToFind][0];
+
+                let formattedResult =
+                    `<p>
+                    <span style="font-weight: bolder;">ID:</span> <span style="font-weight:500;">#${foundCar.ID} - </span>
+                    <span style="font-weight: bolder;">Color:</span> <span style="font-weight:500;">${foundCar.Color} - </span> 
+                    <span style="font-weight: bolder;">Year:</span> <span style="font-weight:500;">${foundCar.Year} - </span> 
+                    <span style="font-weight: bolder;">Manufacturer:</span> <span style="font-weight:500;">${foundCar.Manufacturer} -</span>
+                    <span style="font-weight: bolder;">Plate:</span> <span style="font-weight:500;">${foundCar.Plate}</span>
+                </p>`;
+                msg.innerHTML = `<h3>Car Found:</h3> ${formattedResult}`;
+
+            } else {
+                msg.innerHTML = `<h3>Car with specified ID not found</h3>`;
+            }
+        }
+
+
+        // Display the garage by updating the garage state.
+        function displayGarage() {
+            updateGarage();
+            fetchGarageData();
+        }
+
+        displayGarage(); // on-load fetches the garage data and displays it
+
+        // Updates the garage by displaying the current list of cars.
+        function updateGarage() {
+            let garageContent = "";
+
+            for (let car of garage) {
+                garageContent +=
+                    `<p>
+                    <span style="font-weight: bolder;">ID:</span> <span style="font-weight:500;">#${car[0].ID} - </span>
+                    <span style="font-weight: bolder;">Color:</span> <span style="font-weight:500;">${car[0].Color} - </span> 
+                    <span style="font-weight: bolder;">Year:</span> <span style="font-weight:500;">${car[0].Year} - </span> 
+                    <span style="font-weight: bolder;">Brand:</span> <span style="font-weight:500;">${car[0].Brand} -</span>
+                    <span style="font-weight: bolder;">Model:</span> <span style="font-weight:500;">${car[0].Model} -</span>
+                    <span style="font-weight: bolder;">Plate:</span> <span style="font-weight:500;">${car[0].Plate}</span>
+                </p><hr>`;
+            }
+
+            if (garage == 0) {
+                msg.innerHTML = `<h3>The Garage is empty, try adding new Vehicles.</h3>`
+
+            } else {
+                msg.innerHTML = `<h3>Garage Data:</h3> ${garageContent}`;
+            }
+
+        }
+
+        // Resets all fields in the Add section.
+        function resetFields() {
+            document.getElementById('carcolor').value = '';
+            document.getElementById('caryear').value = '';
+            document.getElementById('carbrand').value = '';
+            document.getElementById('carmodel').value = '';
+            document.getElementById('plate').value = '';
+            document.getElementById('remover').value = '';
+            document.getElementById('finder').value = '';
+        }
+
+    </script>
+</body>
+{% endblock %}

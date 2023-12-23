@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block title %}Login{% endblock %}
+{% block head %}
+{{super()}}
+{% endblock %}
+
+{% block content %}
+
+<main class="form-signin w-100 m-auto">
+  <form action="{{ url_for('login') }}" method="post">
+    <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
+    <div class="form-floating">
+      <input type="text" placeholder="Username" class="form-control" id="username" name="username" required>
+      <label for="username">Username</label>
+    </div>
+    <div class="form-floating">
+      <input type="password" placeholder="Password" class="form-control" id="password" name="password" required>
+      <label for="password">Password</label>
+    </div>
+    <br>
+    <button class="btn btn-primary w-100 py-2" type="submit" value="Login">Sign in</button>
+  </form>
+  <div style="text-align: center;">
+    <p class="mt-5 mb-3 text-body-secondary">{{msg}}</p><br>
+
+    <p class="mt-5 mb-3 text-body-secondary">*Debug Account: user1/123</p>
+
+
+</main>
+
+<div class="w-100 m-auto px-4 pt-5 my-5 text-center">
+  <div class="overflow-hidden">
+    <div class="container px-5">
+      <img src="https://picsum.photos/700/300" class="img-fluid border rounded-3 shadow-lg mb-4">
+    </div>
+  </div>
+</div>
+
+<br>
+
+
+{% endblock %}
